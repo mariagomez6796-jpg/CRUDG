@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: crudg_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root        
+      MYSQL_DATABASE: CRUDG            
+    ports:
+      - "3307:3306"                    
+    volumes:
+      - mysql-data:/var/lib/mysql      
+
+  backend:
+    build: .
+    container_name: crudg_backend
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/CRUDG?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql-data:
+
+
