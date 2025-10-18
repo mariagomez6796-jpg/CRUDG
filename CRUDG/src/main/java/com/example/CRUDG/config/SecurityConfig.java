@@ -34,16 +34,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(request -> new org.springframework.web.cors.CorsConfiguration().applyPermitDefaultValues()))
             .csrf(csrf -> csrf.disable())  // desactiva CSRF (útil para pruebas con Postman)
             .authorizeHttpRequests(auth -> auth
             //endpoinds publicos
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/patients/register").permitAll()
                 //edpoinds protegisdos por rol
-                .requestMatchers("/api/v1/admin/**").permitAll()//hasRole("Admin")
-                .requestMatchers("/api/v1/doctor/**").permitAll()//hasAnyRole("Admin")
-                .requestMatchers("/api/v1/patient/**").permitAll()
-                .requestMatchers("/api/v1/patients/**").permitAll()//hasAnyRole("Admin","Doctor")
+                .requestMatchers("/api/v1/admin/**", "/api/v1/admin").permitAll()//hasRole("Admin")
+                .requestMatchers("/api/v1/doctor/**", "/api/v1/doctor").permitAll()//hasAnyRole("Admin")
+                .requestMatchers("/api/v1/patient/**", "/api/v1/patient").permitAll()
+                //.requestMatchers("/api/v1/patients/**").permitAll()//hasAnyRole("Admin","Doctor")
                 .anyRequest().authenticated() // permite todo sin autenticación
             )
 

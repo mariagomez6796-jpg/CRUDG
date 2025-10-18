@@ -34,6 +34,7 @@ public class PatientService {
         return patientRepository.save(patient);
     }
 
+
     public void delete(Long id) {
         patientRepository.deleteById(id);
     }
