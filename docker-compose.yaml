@@ -14,7 +14,7 @@ services:
       - mysql-data:/var/lib/mysql      
 
   backend:
-    build: .
+    build: ./CRUDG  # 👈 tu carpeta del backend
     container_name: crudg_backend
     restart: always
     depends_on:
@@ -25,6 +25,24 @@ services:
       SPRING_DATASOURCE_PASSWORD: root
     ports:
       - "8080:8080"
+
+  frontend:
+    build: ./vitalapp-auth
+    container_name: crudg_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8080/api/v1  # 👈 tu backend    
+
+
+
+
+
+
+
 
 volumes:
   mysql-data:

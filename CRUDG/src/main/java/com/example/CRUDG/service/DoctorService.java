@@ -33,6 +33,28 @@ public class DoctorService {
         return doctorRepository.save(doctor);
     }
 
+    public Doctor updateDoctor(Long id, Doctor updatedDoctor) {
+        return doctorRepository.findById(id).map(doctor -> {
+            doctor.setName(updatedDoctor.getName());
+            doctor.setEmail(updatedDoctor.getEmail());
+            // Hash the password before updating, only when a new password was provided
+            String newPassword = updatedDoctor.getPassword();
+            if (newPassword != null && !newPassword.isBlank()) {
+                doctor.setPassword(passwordService.hashPassword(newPassword));
+            }
+            return doctorRepository.save(doctor);
+        }).orElseGet(() -> {
+            // If doctor not found, save as new
+            updatedDoctor.setId(id);
+            // Hash the password before saving if provided
+            String newPassword = updatedDoctor.getPassword();
+            if (newPassword != null && !newPassword.isBlank()) {
+                updatedDoctor.setPassword(passwordService.hashPassword(newPassword));
+            }
+            return doctorRepository.save(updatedDoctor);
+        });
+    }
+
     public void delete(Long id) {
         doctorRepository.deleteById(id);
     }

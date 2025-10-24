@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.CRUDG.service.DoctorService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 //import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,8 @@ import com.example.CRUDG.entity.Doctor;
 
 @RestController
 @RequestMapping(path ="api/v1/doctor")
+@CrossOrigin(origins = "http://localhost:3000")
+
 
 public class DoctorController {
 
@@ -55,10 +58,10 @@ public class DoctorController {
         // Implementation for retrieving all doctors
     }
 
-   @PutMapping("/{doctorId}")
-public void updateDoctor(@PathVariable("doctorId") Long doctorId, @RequestBody Doctor doctor) {
-    doctor.setId(doctorId);
-    doctorService.saveOrUpdate(doctor);
+@PutMapping("/{doctorId}")
+public Doctor updateDoctor(@PathVariable("doctorId") Long doctorId, @RequestBody Doctor doctor) {
+    // Ensure the path id is used and delegate to service update method
+     return doctorService.updateDoctor(doctorId, doctor);
 }
 
 

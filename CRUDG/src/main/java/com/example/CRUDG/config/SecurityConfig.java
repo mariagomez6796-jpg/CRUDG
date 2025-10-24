@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
 import com.example.CRUDG.security.JwtFilter;
 
 
@@ -35,8 +36,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(request -> new org.springframework.web.cors.CorsConfiguration().applyPermitDefaultValues()))
+            //.cors(cors -> {})
             .csrf(csrf -> csrf.disable())  // desactiva CSRF (útil para pruebas con Postman)
             .authorizeHttpRequests(auth -> auth
+            // permite preflight requests
+            //.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
             //endpoinds publicos
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/patients/register").permitAll()

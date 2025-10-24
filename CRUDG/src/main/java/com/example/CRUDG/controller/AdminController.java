@@ -4,6 +4,7 @@ import java.util.Optional;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.CRUDG.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 //import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,8 @@ import com.example.CRUDG.entity.Admin;
 
 @RestController
 @RequestMapping(path ="api/v1/admin")
+@CrossOrigin(origins = "http://localhost:3000")
+
 
 
 
@@ -49,9 +52,9 @@ public class AdminController {
     }
 
     @PutMapping("/{adminId}")
-public void updateAdmin(@PathVariable("adminId") Long admiId, @RequestBody Admin admin) {
-    admin.setId(admiId);
-    adminService.saveOrUpdate(admin);
+public Admin updateAdmin(@PathVariable("adminId") Long admiId, @RequestBody Admin admin) {
+    // Use the service update method which performs partial update logic
+    return adminService.updateAdmin(admiId, admin);
 }
 
 
