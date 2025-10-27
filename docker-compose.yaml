@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: crudg_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root        
+      MYSQL_DATABASE: CRUDG            
+    ports:
+      - "3307:3306"                    
+    volumes:
+      - mysql-data:/var/lib/mysql      
+
+  backend:
+    build: ./CRUDG  # �Y'^ tu carpeta del backend
+    container_name: crudg_backend
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/CRUDG?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./vitalapp-auth
+      args:
+        NEXT_PUBLIC_API_URL: http://backend:8080/api/v1
+        NEXT_PUBLIC_VIDEO_API_URL: http://localhost:8000
+    container_name: crudg_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8080/api/v1
+
+  videoapi:
+    build: ./videocalls-api
+    container_name: crudg_videoapi
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      # Mismo secreto JWT que el backend Java, para aceptar su token
+      JWT_SECRET: MiSuperClaveDeSeguridadParaVitalApp1234567890
+      # DB: usa el mismo MySQL y la misma base para simplificar (crea sus propias tablas)
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: CRUDG
+      DB_USER: root
+      DB_PASS: root
+    ports:
+      - "8000:8000"
+
+volumes:
+  mysql-data:
+
