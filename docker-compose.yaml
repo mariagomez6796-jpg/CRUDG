@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: crudg_db
+    container_name: crudg_db1
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root        
@@ -15,7 +15,7 @@ services:
 
   backend:
     build: ./CRUDG  # 👈 tu carpeta del backend
-    container_name: crudg_backend
+    container_name: crudg_backend1
     restart: always
     depends_on:
       - mysql
@@ -28,7 +28,7 @@ services:
 
   frontend:
     build: ./vitalapp-auth
-    container_name: crudg_frontend
+    container_name: crudg_frontend1
     restart: always
     ports:
       - "3000:3000"

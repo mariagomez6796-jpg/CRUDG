@@ -11,9 +11,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-
+import org.springframework.web.cors.CorsConfiguration;
 import com.example.CRUDG.security.JwtFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
+
 
 
 
@@ -35,7 +38,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(request -> new org.springframework.web.cors.CorsConfiguration().applyPermitDefaultValues()))
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             //.cors(cors -> {})
             .csrf(csrf -> csrf.disable())  // desactiva CSRF (útil para pruebas con Postman)
             .authorizeHttpRequests(auth -> auth
@@ -61,6 +64,19 @@ public class SecurityConfig {
     
 
         return http.build();
+    }
+    
+    // Definimos un CorsConfigurationSource para que Spring Security permita los métodos que necesitamos
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
     // 🔹 Bean para codificar contraseñas (esto ya lo tenías)
     @Bean
