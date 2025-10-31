@@ -42,6 +42,9 @@ public class DoctorService {
             if (newPassword != null && !newPassword.isBlank()) {
                 doctor.setPassword(passwordService.hashPassword(newPassword));
             }
+
+
+            
             return doctorRepository.save(doctor);
         }).orElseGet(() -> {
             // If doctor not found, save as new
