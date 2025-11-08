@@ -19,6 +19,7 @@ import { authService } from "@/lib/auth"
 import { createRoom } from "@/lib/video"
 import { useRouter } from "next/navigation"
 
+
 const mockVideoSessions = [
   {
     id: "1",
@@ -50,6 +51,7 @@ export function VideoCallManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [joinCode, setJoinCode] = useState("")
   const router = useRouter()
+
 
   const copyRoomId = (roomId: string) => {
     navigator.clipboard.writeText(roomId)

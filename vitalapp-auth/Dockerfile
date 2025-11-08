@@ -3,11 +3,9 @@ FROM node:18-bullseye AS builder
 
 WORKDIR /app
 
-# Variables públicas para build (incrustadas en el bundle)
+# Recibir variable para build
 ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_VIDEO_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-ENV NEXT_PUBLIC_VIDEO_API_URL=${NEXT_PUBLIC_VIDEO_API_URL}
 
 # Copiar dependencias
 COPY package*.json ./

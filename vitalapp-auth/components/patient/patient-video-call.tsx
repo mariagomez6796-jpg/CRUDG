@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Video, Calendar, Clock, User, ExternalLink, Copy } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-
 const mockVideoSessions = [
   {
     id: "1",
@@ -38,8 +37,10 @@ const statusConfig = {
 }
 
 export function PatientVideoCall() {
+
   const router = useRouter()
   const [joinCode, setJoinCode] = useState("")
+
   const copyRoomId = (roomId: string) => {
     navigator.clipboard.writeText(roomId)
     alert("ID de sala copiado al portapapeles")

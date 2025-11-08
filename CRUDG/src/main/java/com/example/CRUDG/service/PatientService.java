@@ -39,13 +39,19 @@ public class PatientService {
             patient.setName(updatedPatient.getName());
             patient.setEmailAddress(updatedPatient.getEmailAddress());
             // Hash the password before updating
-            patient.setPassword(passwordService.hashPassword(updatedPatient.getPassword()));
+
+            if (updatedPatient.getPassword() != null && !updatedPatient.getPassword().isBlank()) {
+                patient.setPassword(passwordService.hashPassword(updatedPatient.getPassword()));
+            }
             return patientRepository.save(patient);
         }).orElseGet(() -> {
             // If patient not found, save as new
             updatedPatient.setId(id);
             // Hash the password before saving
-            updatedPatient.setPassword(passwordService.hashPassword(updatedPatient.getPassword()));
+            //updatedPatient.setPassword(passwordService.hashPassword(updatedPatient.getPassword()));
+            if (updatedPatient.getPassword() != null && !updatedPatient.getPassword().isBlank()) {
+                updatedPatient.setPassword(passwordService.hashPassword(updatedPatient.getPassword()));
+            }
             return patientRepository.save(updatedPatient);
         });
     }
