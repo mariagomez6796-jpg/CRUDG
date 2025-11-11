@@ -7,8 +7,12 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+
 import java.security.Key;
 import java.util.Date;
+
+
+
 
 
 
@@ -22,9 +26,10 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public String generateToken(String email, String role) {
+    public String generateToken(Long id, String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("id",id)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
@@ -48,6 +53,17 @@ public class JwtUtil {
         return (String) extractAllClaims(token).get("role");
     }
 
+    public Long extractId(String token) {
+        Object id = extractAllClaims(token).get("id");
+        if (id instanceof Integer) {
+            return ((Integer) id).longValue();
+        } else if (id instanceof Long) {
+            return (Long) id;
+        } else {
+            return null;
+        }
+    }
+
     public boolean isTokenValid(String token) {
         try {
             extractAllClaims(token);
@@ -56,5 +72,12 @@ public class JwtUtil {
             return false;
         }
     }
+
+    
+
+
+
+
+
     
 }

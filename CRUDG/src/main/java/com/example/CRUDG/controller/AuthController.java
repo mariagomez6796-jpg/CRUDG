@@ -42,22 +42,22 @@ public class AuthController {
         // Buscar como paciente
          Optional<Patient> p = patientService.findByEmail(email);
     if (p.isPresent() && passwordService.checkPassword(password, p.get().getPassword())) {
-        String token = jwtUtil.generateToken(email, "PATIENT");
-        return ResponseEntity.ok(Map.of("token", token, "role", "PATIENT", "email", email));
+        String token = jwtUtil.generateToken(p.get().getId(), email, "PATIENT");
+        return ResponseEntity.ok(Map.of("token", token, "role", "PATIENT", "email", email, "id", p.get().getId()));
     }
 
         // Buscar como doctor
        Optional<Doctor> d = doctorService.findByEmail(email);
     if (d.isPresent() && passwordService.checkPassword(password, d.get().getPassword())) {
-        String token = jwtUtil.generateToken(email, "DOCTOR");
-        return ResponseEntity.ok(Map.of("token", token, "role", "DOCTOR", "email", email));
+        String token = jwtUtil.generateToken(d.get().getId(), email, "DOCTOR");
+        return ResponseEntity.ok(Map.of("token", token, "role", "DOCTOR", "email", email, "id", d.get().getId()));
     }
 
         // Buscar como admin
         Optional<Admin> a = adminService.findByEmail(email);
     if (a.isPresent() && passwordService.checkPassword(password, a.get().getPassword())) {
-        String token = jwtUtil.generateToken(email, "ADMIN");
-        return ResponseEntity.ok(Map.of("token", token, "role", "ADMIN", "email", email));
+        String token = jwtUtil.generateToken(a.get().getId(),email, "ADMIN");
+        return ResponseEntity.ok(Map.of("token", token, "role", "ADMIN", "email", email, "id", a.get().getId()));
     }
 
         // No encontrado
