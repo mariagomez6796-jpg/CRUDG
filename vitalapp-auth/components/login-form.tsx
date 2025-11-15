@@ -10,10 +10,6 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Mail, Lock, UserCircle } from "lucide-react"
 import { authService, type UserRole } from "@/lib/auth"
 
-
-
-
-
 export function LoginForm() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
@@ -33,56 +29,49 @@ export function LoginForm() {
     setErrorMessage(null)
 
     try {
-  const res = await fetch("/api/v1/auth/login", {
+      const res = await fetch("/api/v1/auth/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"},
-          // send role so backend can validate/return correct user
-          body: JSON.stringify({ email, password, role }),
-        });
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password, role }),
+      });
       if (!res.ok) {
-        // try to read error message from backend
         const err = await res.json().catch(() => null)
         const msg = err?.message || 'Correo o contraseña incorrectos.'
         throw new Error(msg)
       }
-      const data = await res.json();
+      const data = await res.json(); // <-- ¡Ahora 'data' SÍ tiene 'data.id'!
 
-    // Normalize and trim server role and selected role for robust comparison
-  const serverRoleRaw = (data.role ?? '')
-  const rawSelected = String(role ?? '')
+      // ... (toda tu lógica de 'normalizeRole' va aquí)
+      const serverRoleRaw = (data.role ?? '')
+      const rawSelected = String(role ?? '')
+      const normalizeRole = (input: string) => {
+        const s = String(input ?? '').trim().toLowerCase()
+        if (!s) return ''
+        if (s === 'admin' || s === 'administrator' || s === 'administrador' || s === 'administration' || s === 'adm') return 'admin'
+        if (s === 'doctor' || s === 'medico' || s === 'medicina' || s === 'doc') return 'doctor'
+        if (s === 'patient' || s === 'paciente' || s === 'user' || s === 'pac') return 'patient'
+        if (s.includes('admin') || s.includes('administr')) return 'admin'
+        if (s.includes('doctor') || s.includes('medic') || s.includes('medico')) return 'doctor'
+        if (s.includes('patient') || s.includes('paciente')) return 'patient'
+        return ''
+      }
+      const serverRole = normalizeRole(serverRoleRaw)
+      const selectedRole = normalizeRole(rawSelected)
+      setServerRoleState(serverRole)
+      console.log('Usuario autenticado (raw):', data) 
+      setLastResponse(data)
+      console.log('selectedRole(normalized):', selectedRole, 'serverRole(normalized):', serverRole)
 
-  const normalizeRole = (input: string) => {
-  const s = String(input ?? '').trim().toLowerCase()
-  if (!s) return ''
-  if (s === 'admin' || s === 'administrator' || s === 'administrador' || s === 'administration' || s === 'adm') return 'admin'
-  if (s === 'doctor' || s === 'medico' || s === 'medicina' || s === 'doc') return 'doctor'
-  if (s === 'patient' || s === 'paciente' || s === 'user' || s === 'pac') return 'patient'
-  if (s.includes('admin') || s.includes('administr')) return 'admin'
-  if (s.includes('doctor') || s.includes('medic') || s.includes('medico')) return 'doctor'
-  if (s.includes('patient') || s.includes('paciente')) return 'patient'
-  return ''
-  }
-
-  const serverRole = normalizeRole(serverRoleRaw)
-  const selectedRole = normalizeRole(rawSelected)
-  setServerRoleState(serverRole)
-  console.log('Usuario autenticado (raw):', data)
-  setLastResponse(data)
-  console.log('selectedRole(normalized):', selectedRole, 'serverRole(normalized):', serverRole)
-
-      // Ensure token and role exist
       if (!data.token) {
         setErrorMessage('Respuesta inválida del servidor: falta token.')
-        // ensure no stale user left
         localStorage.removeItem('user')
         return
       }
 
-      // Validate that selected role matches returned role
       if (serverRole && serverRole !== selectedRole) {
         setErrorMessage('El tipo de cuenta seleccionado no coincide con el usuario. Seleccionaste "' + selectedRole + '" pero la cuenta es "' + serverRole + '".')
-        // clear any tokens/user just in case
         localStorage.removeItem('token')
         localStorage.removeItem('role')
         localStorage.removeItem('email')
@@ -90,27 +79,47 @@ export function LoginForm() {
         return
       }
 
-      // Save token and role in localStorage
+      // Guardar token y rol
       localStorage.setItem('token', data.token)
       localStorage.setItem('role', serverRole)
-  const emailToStore = data.email ?? data.emailAddres ?? data.emailAddress ?? ''
-  localStorage.setItem('email', emailToStore)
+      const emailToStore = data.email ?? data.emailAddres ?? data.emailAddress ?? ''
+      localStorage.setItem('email', emailToStore)
 
-      // Also save the user object expected by authService
+
+      // --- ¡¡LA LÓGICA QUE AHORA SÍ FUNCIONA!! ---
+      
+      // 1. Buscamos el ID en la respuesta del backend
+      const userId = data.id || data.userId || data.patientId;
+
+      if (userId) {
+        // 2. Guardamos el ID como una clave separada
+        localStorage.setItem('user_id', userId.toString()); 
+        console.log(`LOGIN: ID de paciente (${userId}) guardado en 'user_id'.`);
+      } else {
+        console.warn("LOGIN: No se encontró 'id', 'userId' o 'patientId' en la respuesta de login.");
+      }
+      
+      // 3. También lo guardamos DENTRO del objeto 'user'
       try {
-  const userObj = { email: data.email ?? data.emailAddres ?? data.emailAddress ?? '', role: serverRole, token: data.token }
+        const userObj = { 
+          id: userId || null, // <-- ¡¡AÑADIDO!!
+          email: data.email ?? data.emailAddres ?? data.emailAddress ?? '', 
+          role: serverRole, 
+          token: data.token 
+        }
         localStorage.setItem('user', JSON.stringify(userObj))
       } catch (e) {
         console.error('No se pudo guardar user en localStorage', e)
       }
+      // --- FIN DE LA LÓGICA ---
 
-      // Redirect based on normalized role
+
+      // ... (Toda tu lógica de 'Redirect' va aquí)
       if (serverRole === 'admin') {
         const msg = 'Redirigiendo a /admin'
         console.log(msg)
         setRedirectMessage(msg)
         router.push('/admin')
-        // fallback: force navigation after small delay if router.push doesn't work
         setTimeout(() => { if (window.location.pathname === '/') window.location.href = '/admin' }, 600)
         return
       } else if (serverRole === 'doctor') {
@@ -131,16 +140,18 @@ export function LoginForm() {
         setErrorMessage('No se pudo identificar el tipo de cuenta devuelto por el servidor: "' + String(data.role) + '"')
         return
       }
-  } catch (error) {
-    console.error("Error al iniciar sesión:", error);
-    const msg = error instanceof Error ? error.message : 'Error al iniciar sesión.'
-    setErrorMessage(msg)
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
+      const msg = error instanceof Error ? error.message : 'Error al iniciar sesión.'
+      setErrorMessage(msg)
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
+    // ... (Tu JSX del formulario va aquí, no hay que cambiarlo)
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
@@ -162,7 +173,6 @@ export function LoginForm() {
             </select>
           </div>
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium">
             Correo electrónico
@@ -180,7 +190,6 @@ export function LoginForm() {
             />
           </div>
         </div>
-
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className="text-sm font-medium">
@@ -211,18 +220,15 @@ export function LoginForm() {
           </div>
         </div>
       </div>
-
       <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
         {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
       </Button>
-
       {errorMessage && (
         <div className="text-sm text-red-600 mt-2" role="alert">
           {errorMessage}
         </div>
       )}
-
-      {/* Diagnostic panel - remove in production */}
+      {/* Diagnostic panel */}
       <div className="mt-3 text-sm text-muted-foreground">
         <div>Selected role (local): <strong>{role}</strong></div>
         <div>Server role (normalized): <strong>{serverRoleState ?? '-'}</strong></div>
@@ -234,7 +240,6 @@ export function LoginForm() {
           </details>
         )}
       </div>
-
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border" />
@@ -243,8 +248,8 @@ export function LoginForm() {
           <span className="px-4 bg-background text-muted-foreground">O continúa con</span>
         </div>
       </div>
-
       <div className="grid grid-cols-2 gap-4">
+        {/* ... (Botones de Google y Apple) ... */}
         <Button
           type="button"
           variant="outline"
@@ -266,7 +271,7 @@ export function LoginForm() {
             />
             <path
               fill="currentColor"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.config 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
             />
           </svg>
           Google
