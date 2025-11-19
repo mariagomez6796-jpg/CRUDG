@@ -1,3 +1,7 @@
 appointments-api/venv/
 **/__pycache__/
 *.pyc
+CRUDG/
+vitalapp-auth/
+**/__pycache__/
+*.pyc
