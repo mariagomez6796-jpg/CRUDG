@@ -1,0 +1,3 @@
+appointments-api/venv/
+**/__pycache__/
+*.pyc
